@@ -18,3 +18,5 @@
 - POST /api/users/login: Login user
 - GET /api/cart: View user cart
 - POST /api/cart: Add item to cart
+- - POST /api/orders: Create order from cart
+- GET /api/orders: View user orders
