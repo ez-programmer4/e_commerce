@@ -43,6 +43,7 @@ console.log("Attempting to connect to MongoDB...");
   app.use("/api/products", require("./routes/products"));
   app.use("/api/users", require("./routes/users"));
   app.use("/api/cart", require("./routes/cart"));
+  app.use("/api/orders", require("./routes/orders"));
 
   const PORT = process.env.PORT || 5000;
   console.log("Starting server on port", PORT);
