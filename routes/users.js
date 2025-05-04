@@ -3,70 +3,69 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const catchAsync = require('./../utilities/catchAsync')
+const AppError = require('./../utilities/AppError')
 
-router.post("/register", async (req, res) => {
-  try {
-    const { email, password, name } = req.body;
+const signToken = (user) => { return  jwt.sign(
+  { userId: user._id, isAdmin: user.isAdmin },
+  process.env.JWT_SECRET,
+  { expiresIn: "1h" }
+)};
 
-    const existingUser = await User.findOne({ email });
+router.post("/register", catchAsync(async (req, res) => {
+  
+    const existingUser = await User.findOne({email: req.body.email} );
     if (existingUser) {
       return res.status(400).json({ error: "Email already registered" });
     }
+   const user = await User.create({
+    name: req.body.name,
+    email: req.body.email,
+    password: req.body.password,
+    confirmPassword: req.body.confirmPassword
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const user = new User({
-      email,
-      password: hashedPassword,
-      name,
-    });
-    await user.save();
-
-    const token = jwt.sign(
-      { userId: user._id, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
+   })
+   
+    const token = signToken(user);
     res
       .status(201)
       .json({
         token,
-        user: { id: user._id, email, name, isAdmin: user.isAdmin },
+        user: { id: user._id, 
+          email: user.email, 
+          name: user.name, 
+          role: user.role },
       });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+  
+}));
 
-router.post("/login", async (req, res) => {
-  try {
+router.post("/login", catchAsync(async (req, res) => 
+{
     const { email, password } = req.body;
+    if(!email || !password) {
+      return res.status(400).json({error : "please enter email and password"})
+    }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return res.status(400).json({ error: "Invalid email or password" });
+      return res.status(400).json({ error: "Invalid email" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await correctPassword(password , user.password)
     if (!isMatch) {
-      return res.status(400).json({ error: "Invalid email or password" });
+      return res.status(400).json({ error: "Invalid  password" });
     }
 
-    const token = jwt.sign(
-      { userId: user._id, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    const token = signToken(user);
 
     res.json({
       token,
-      user: { id: user._id, email, name: user.name, isAdmin: user.isAdmin },
+      user: { id: user._id, 
+        email: user.email, 
+        name: user.name, 
+        role: user.role },
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+
+}));
 
 module.exports = router;

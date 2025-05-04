@@ -7,6 +7,13 @@ const productSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, "Name cannot exceed 100 characters"],
   },
+  isVerified: {
+     type: String,
+     default: false
+  },
+  owner: { 
+    type: mongoose.Schema.Types.ObjectId,
+     ref: 'User' },
   price: {
     type: Number,
     required: [true, "Price is required"],

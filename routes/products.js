@@ -1,27 +1,30 @@
 const express = require("express");
 const router = express.Router();
 const Product = require("../models/Product");
-const { authMiddleware, adminMiddleware } = require("../middleware/auth");
+const { authMiddleware, adminMiddleware , sellerMiddleware } = require("../middleware/auth");
+const catchAsync = require('./../utilities/catchAsync')
 
-router.get("/", async (req, res) => {
-  try {
+router.get("/", catchAsync(async (req, res) => {
+  
     const products = await Product.find();
     res.json(products);
-  } catch (error) {
-    // Ensure 'error' is defined
-    res.status(500).json({ error: error.message });
-  }
-});
+  
+}));
+router.post('/' ,authMiddleware , sellerMiddleware , catchAsync(async (req , res) => {
+    const product = new Product({
+        ...req.body,
+        owner : req.user._id
+    })
+    await product.save();
+    res.status(201).json({ message: "Product submitted for review", product });
+}))
 
-router.post("/", authMiddleware, adminMiddleware, async (req, res) => {
-  try {
+router.post("/", authMiddleware, adminMiddleware, catchAsync(async (req, res) => {
+  
     const product = new Product(req.body);
     await product.save();
     res.status(201).json(product);
-  } catch (error) {
-    // Ensure 'error' is defined
-    res.status(400).json({ error: error.message });
-  }
-});
+  
+}));
 
 module.exports = router;

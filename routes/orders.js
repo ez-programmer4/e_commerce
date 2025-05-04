@@ -5,6 +5,7 @@ const Cart = require("../models/Cart");
 const Product = require("../models/Product");
 const { authMiddleware } = require("../middleware/auth");
 
+
 // Create order from cart
 router.post("/", authMiddleware, async (req, res) => {
   try {
