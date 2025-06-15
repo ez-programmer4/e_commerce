@@ -9,7 +9,7 @@ const listEndpoints = require('express-list-endpoints');
 
 
 console.log("Starting server...");
-dotenv.config();
+dotenv.config({path: './config.env'});
 console.log("Environment variables loaded:", process.env.PORT);
 
 const app = express();

@@ -31,10 +31,14 @@ const productSchema = new mongoose.Schema({
     min: [0, "Stock cannot be negative"],
   },
   category: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "category",
     required: [true, "Category is required"],
-    enum: ["Casual Wear", "Formal Wear", "Islamic Traditional", "Accessories"],
+
   },
+    color: {
+        type: String
+    },
   description: {
     type: String,
     required: [true, "Description is required"],
